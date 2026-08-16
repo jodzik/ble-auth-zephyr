@@ -1,0 +1,18 @@
+menu "Zephyr auth methods on BLE"
+
+config AUTH_BLE
+    bool "Auth BLE library"
+    default y
+    select ZBUS
+
+config AUTH_BLE_MAX_LOCAL_CERTS
+    int "Max count of known certs in local NVM storage"
+    range 2 65536
+    default 32
+
+config AUTH_BLE_SERVICE_PART_UUID
+    hex "Service part of auth bluetooth uuid, 1 byte"
+    range 0x00 0xFF
+    default 0xF0
+
+endmenu
