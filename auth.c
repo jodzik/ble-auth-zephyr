@@ -239,7 +239,7 @@ static inline bool is_pub_key_set(uint8_t const* const pub_key) {
 }
 
 static inline bool is_activated(void) {
-    return is_pub_key_set(g_master_pub_key);
+    return PSA_KEY_ID_NULL != g_master_pub_key_id;
 }
 
 static inline bool is_rotation_proceeded(void) {
@@ -1010,10 +1010,10 @@ int auth__init(void) {
         }
     }
 
-    if (PSA_KEY_ID_NULL == g_master_pub_key_id) {
-        atomic_set(&g_auth_status, AUTH_GLOBAL_STATUS__NOT_ACTIVATED);
-    } else {
+    if (is_activated()) {
         atomic_set(&g_auth_status, AUTH_GLOBAL_STATUS__OK);
+    } else {
+        atomic_set(&g_auth_status, AUTH_GLOBAL_STATUS__NOT_ACTIVATED);
     }
 
     TRY(zbus_chan_add_obs(&e_ztl_bt_chan, &g_auth_bt_listener, K_FOREVER));
@@ -1029,10 +1029,14 @@ int auth__privileges(struct bt_conn const* const conn, privileges_t* const privi
     int rc = 0;
 
     k_mutex_lock(&g_mutex, K_FOREVER);
-    struct AuthConn const* const auth_conn = find_auth_conn(conn);
-    ASSERTs(NULL != auth_conn, ER_NO_ENT);
-    ASSERT(AUTH_CONN_STATUS__PASSED == auth_conn->status, BT_GATT_ERR(BT_ATT_ERR_WRITE_NOT_PERMITTED));
-    *privileges = auth_conn->cert.privileges;
+    if (AUTH_GLOBAL_STATUS__NOT_ACTIVATED == auth__status()) {
+        *privileges = AUTH_PRIVILEGES_ALL;
+    } else {
+        struct AuthConn const* const auth_conn = find_auth_conn(conn);
+        ASSERTs(NULL != auth_conn, ER_NO_ENT);
+        ASSERT(AUTH_CONN_STATUS__PASSED == auth_conn->status, ER_NOT_PERM);
+        *privileges = auth_conn->cert.privileges;
+    }
 
  finally:
 

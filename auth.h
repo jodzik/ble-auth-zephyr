@@ -8,6 +8,8 @@
 
 #include <stdbool.h>
 
+#define AUTH_PRIVILEGE(privilege_idx) (1U << (privilege_idx + 4))
+
 typedef uint8_t week_days_t;
 typedef uint32_t privileges_t;
 
@@ -81,9 +83,13 @@ typedef struct AuthLocalCertId {
 } AuthLocalCertId;
 
 int auth__init(void);
+
 int auth__privileges(struct bt_conn const* conn, privileges_t* privileges);
+
 int auth__assert_privileges(struct bt_conn const* conn, privileges_t to_check);
+
 enum AuthGlobalStatus auth__status(void);
+
 int auth__cert_id(struct bt_conn const* conn, struct AuthLocalCertId* cert_id);
 
 #endif // AUTH_H_
