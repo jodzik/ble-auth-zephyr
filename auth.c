@@ -417,9 +417,9 @@ static inline int reimport_pub_key(psa_key_id_t* const pub_key_id, uint8_t const
 static int deserialize_local_cert(uint8_t const* const buf, uint16_t const size, struct AuthLocalCert* cert) {
     int rc = 0;
 
-    memcpy(cert->salt, buf, sizeof(cert->salt));
-
     ASSERT(size > sizeof(cert->salt), ER_INVAL);
+
+    memcpy(cert->salt, buf, sizeof(cert->salt));
 
     struct TlvScan tlv_scan = {0};
     TRY(tlv__scan_init(&tlv_scan, buf + sizeof(cert->salt), size - sizeof(cert->salt)));
